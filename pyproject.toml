@@ -1,0 +1,32 @@
+[project]
+name = "usgs_stac"
+requires-python = ">=3.9"
+description = "Create STAC from USGS WESM JSON url."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [ { name = "Kyle Mann", email = "kyle@hobu.co" } ]
+maintainers = [ { name = "Kyle Mann", email = "kyle@hobu.co" } ]
+dependencies = [ ]
+dynamic = ["version"]
+
+[project.urls]
+homepage = "https://github.com/hobuinc/silvimetric"
+repository = "https://github.com/hobuinc/silvimetric"
+
+[tool.setuptools]
+package-dir = {"" =  "src"}
+
+[tool.setuptools.dynamic]
+version = { attr = "usgs_stac.__version__" }
+dependencies = {file = ["requirements.txt"]}
+
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+silvimetric = "silvimetric.cli.cli:cli"
+
+
+[tool.pytest.ini_options]
+testpaths = [ "tests" ]

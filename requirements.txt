@@ -1,0 +1,7 @@
+# pdal-plugins>=1.6.0
+# pdal>=3.4.5
+# dask>=2024.9.0
+# pyproj>=3.6.1
+# pystac>=1.10.1
+# shapely>=2.0.6
+# aiohttp

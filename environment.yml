@@ -1,0 +1,13 @@
+name: usgs_stac
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - pip
+  - pdal
+  - python-pdal
+  - shapely
+  - dask
+  - pyproj
+  - pystac
+  - boto3

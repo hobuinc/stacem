@@ -3,7 +3,6 @@ import os
 import json
 
 from urllib.parse import urljoin
-from urllib.request import urlopen
 from urllib.error import HTTPError
 from typing import Union
 
@@ -63,7 +62,7 @@ class MetaItem:
 
     def process(self):
         try:
-            self.get_stac()
+            self.item = self.get_stac()
             self.save_local()
             return self.link
         except Exception as e:
@@ -74,35 +73,30 @@ class MetaItem:
         if self.item is not None:
             self.item.save_object(True, self.dst)
 
-    def match_etag(self) -> bool:
+    def match_etag(self, item) -> bool:
         # determine if stac info needs to be re-run based on if the etag
         # matches the previous one used.
 
         try:
             #### Try getting the etag in a previous version of the Item
-            try:
-                # try looking at self.dst
-                local_item = json.load(open(self.dst))
-                prev_etag= local_item['properties']['etag']
-            except:
-                # try looking at self.href
-                try:
-                    prev_item = pystac.Item.from_file(self.href)
-                    prev_etag = prev_item.properties['etag']
-                except:
-                    prev_etag = None
+            if item is not None and 'etag' in item.properties:
+                prev_etag = item.properties['etag']
+            else:
+                prev_etag = None
 
             try:
                 headers = session.head(self.pc_path).headers
-                self.etag = headers['ETag']
-                if '"' in self.etag:
-                    self.etag= self.etag.strip('"')
+                if 'ETag' in headers:
+                    self.etag = headers['ETag']
+                    if '"' in self.etag:
+                        self.etag= self.etag.strip('"')
+                else:
+                    self.etag = prev_etag
+                    return True
+
             except HTTPError:
                 # if pc_path fails, default to previous item
                 self.etag = prev_etag
-            except:
-                # if etag fails, may still be a new item so rerun it
-                self.etag = None
 
             if self.etag is None:
                 return False
@@ -113,7 +107,7 @@ class MetaItem:
 
         except Exception as e:
             self.etag = None
-            self.errors.append[f"A valid ETag wasn't found at location {self.pc_path}"]
+            self.errors.append(f"A valid ETag wasn't found at location {self.pc_path}")
             return False
 
     def get_properties(self):
@@ -156,14 +150,38 @@ class MetaItem:
         return item
 
     def add_extensions(self, item):
+        """ Add STAC file extension to the item """
         item.stac_extensions.append(
             "https://stac-extensions.github.io/file/v2.1.0/schema.json"
         )
+        return item
+
+    def add_links(self, item):
+        """ Add link to self and parent collection """
         item.set_self_href(self.href)
         item.add_link(self.parent_link)
         item.collection_id = self.parent
         return item
 
+    def add_item_extras(self, item):
+        """ Add peripheral information and update item properties if necesary """
+        if self.update:
+            item.properties = self.get_properties()
+        self.add_assets(item)
+        self.add_extensions(item)
+        self.add_links(item)
+        return item
+
+    def get_previous_item(self):
+        try:
+            item = pystac.Item.from_file(self.dst)
+            return item
+        except Exception as e:
+            try:
+                item = pystac.Item.from_file(self.href)
+                return item
+            except Exception as e:
+                return None
 
     def from_metadata(self):
         #item failed to get pdal info, now fill in info purely from metadata
@@ -200,34 +218,20 @@ class MetaItem:
         projection.bbox = [minx, miny, maxx, maxy]
         ##########################
 
-        item = self.add_assets(item)
-
-        # add file extensions
-        self.add_extensions(item)
         self.item = item
 
-        return item
+        return self.add_item_extras(item)
 
     def get_stac(self) -> Union[pystac.Item, None]:
         # Determine if the laz file needs to be reprocessed
-        try:
-            item = pystac.Item.from_file(self.dst)
-            self.item = item
-            return item
-        except Exception as e:
-            try:
-                item = pystac.Item.from_file(self.href)
-                self.item = item
-                return item
-            except Exception as e:
-                self.errors.append(e.args[0])
-                pass
+        item = self.get_previous_item()
 
-        matched = self.match_etag()
+        matched = self.match_etag(item)
         if matched:
             logger.debug(f"No update to {self.id}. Skipping.")
-            self.item = pystac.Item.from_file(self.dst)
-            return self.item
+            item = self.add_item_extras(item)
+            self.item = item
+            return item
 
         # run pdal info over laz data
         # if this returns an obj with "error" key, it has failed
@@ -293,31 +297,6 @@ class MetaItem:
         ##########################
 
         # add data and metadata asset
-        item.add_asset(
-            "data",
-            pystac.Asset(
-                title="LAS data",
-                href=self.pc_path,
-                roles=["data"],
-                media_type="application/vnd.laszip",
-            ),
-        )
-        item.add_asset(
-            "metadata",
-            pystac.Asset(
-                title='Metadata',
-                href=self.meta_path,
-                roles=["metadata"],
-                media_type="application/xml"))
-
-        # add file extensions
-        item.stac_extensions.append(
-            "https://stac-extensions.github.io/file/v2.1.0/schema.json"
-        )
-        item.set_self_href(self.href)
-        item.add_link(self.parent_link)
-        item.collection_id = self.parent
-
-
+        item = self.add_item_extras(item)
         self.item = item
         return item

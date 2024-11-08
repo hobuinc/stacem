@@ -30,9 +30,11 @@ def test_item(meta_json: dict[str, Any], s3_url: str, dst_dir: Path, item_json):
     mi = MetaItem(pc_path, meta_path, dst_dir, s3_url, m.meta)
     item = mi.get_stac()
     assert item.validate()
+
     # test that changes are made to the item
     test_item = Item.from_dict(item_json)
     assert test_item.properties != item.properties
+
 
     meta_item = mi.from_metadata()
     assert meta_item.validate()
@@ -41,23 +43,40 @@ def test_redo(meta_json: dict[str, Any], s3_url: str, dst_dir: Path):
     m = MetaCollection(meta_json, s3_url, str(dst_dir))
     assert m.collection.validate()
 
-    # write first children
-    compute(m.set_children())
-    m.save_local()
-
+    m.set_paths()
     pc_path = m.pc_paths[0]
     meta_path = m.sidecar_paths[0]
 
     mi = MetaItem(pc_path, meta_path, dst_dir, s3_url, m.meta)
 
-    # should not run pdal call again
-    assert mi.match_etag()
+    mi.process()
+    assert mi.item.validate()
 
-    item = mi.get_stac()
-    assert item.validate()
+    # should not run pdal call again
+    assert mi.match_etag(mi.item)
 
     d2 = list(os.walk(dst_dir/"WY_YELLOWSTONENP_1RF_2020"))[0][1] # Find item directories
     assert len(d2) == 1
+
+def test_item_update(meta_json: dict[str, Any], s3_url: str, dst_dir: Path):
+    m = MetaCollection(meta_json, s3_url, str(dst_dir))
+    assert m.collection.validate()
+
+    m.set_paths()
+    pc_path = m.pc_paths[0]
+    meta_path = m.sidecar_paths[0]
+
+    mi = MetaItem(pc_path, meta_path, dst_dir, s3_url, m.meta)
+
+    mi.process()
+    assert mi.item.validate()
+
+    # should draw the item written previously to the local storage
+    # and update the links to be based on this test url
+    s3_new_url = 'https://asdf.asdfwesmtests.com/wesm_stac/'
+    mi2 = MetaItem(pc_path, meta_path, dst_dir, s3_new_url, m.meta)
+    mi2.process()
+    assert mi2.item.self_href == mi2.href
 
 def test_full_loop(wesm_url: dict[str, Any], dst_dir, s3_url):
 
@@ -89,4 +108,3 @@ def test_full_loop(wesm_url: dict[str, Any], dst_dir, s3_url):
     #check that catalog has links to collections
     cols: list[Catalog] = list(m.catalog.links)
     assert len(cols) == 4
-

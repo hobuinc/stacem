@@ -23,16 +23,14 @@ def usgs_stac():
 
 
     args = parser.parse_args()
-    if args.ref_uri == "" or args.ref_uri is None:
-        args.ref_uri = args.s3_dst
 
-    logger.info(f"WESM url: {args.url}")
+    logger.info(f"WESM url: {args.wesm_url}")
     logger.info(f"Local dest: {args.local_dst}")
     logger.info(f"Remote dest: {args.s3_dst}")
     logger.info(f"Updating: {args.update}")
     logger.info(f"Dask Dashboard Link: {client.cluster.dashboard_link}")
 
-    m = MetaCatalog(args.url, args.dst, args.s3_url_path, args.update)
+    m = MetaCatalog(args.wesm_url, args.local_dst, args.s3_dst, args.update)
     m.set_children()
     m.save_local()
 

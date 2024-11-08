@@ -8,7 +8,7 @@ from distributed import Client
 
 @pytest.fixture(autouse=True)
 def dask_conf():
-    client = Client(processes=False, threads_per_worker=1, n_workers=1)
+    client = Client(processes=True, threads_per_worker=1, n_workers=1)
     yield client
 
     client.close()

@@ -67,7 +67,13 @@ class MetaItem:
             return self.link
         except Exception as e:
             logger.error(f"{self.id} failed with error {e.args}")
-            return None
+            try:
+                self.errors.append(str(e.args))
+                self.from_metadata()
+                self.save_local()
+                return self.link
+            except:
+                return None
 
     def save_local(self):
         if self.item is not None:
@@ -98,6 +104,8 @@ class MetaItem:
                 # if pc_path fails, default to previous item
                 self.etag = prev_etag
 
+            if prev_etag is None:
+                return False
             if self.etag is None:
                 return False
             elif prev_etag is not None and prev_etag == self.etag:
@@ -121,10 +129,9 @@ class MetaItem:
             "onemeter_reason": self.meta.onemeter_reason,
             "lpc_category": self.meta.lpc_category,
             "lpc_reason": self.meta.lpc_reason,
-            "ql": self.meta.ql
+            "ql": self.meta.ql,
+            "errors": self.errors
         }
-        if self.errors:
-            properties["errors"] = self.errors
         return properties
 
     def add_assets(self, item):

@@ -1,5 +1,5 @@
 [project]
-name = "usgs_stac"
+name = "stacem"
 requires-python = ">=3.9"
 description = "Create STAC from USGS WESM JSON url."
 readme = "README.md"
@@ -10,8 +10,8 @@ dependencies = [ ]
 dynamic = ["version"]
 
 [project.urls]
-homepage = "https://github.com/hobuinc/silvimetric"
-repository = "https://github.com/hobuinc/silvimetric"
+homepage = "https://github.com/hobuinc/stacem"
+repository = "https://github.com/hobuinc/stacem"
 
 [tool.setuptools]
 package-dir = {"" =  "src"}
@@ -25,8 +25,8 @@ requires = ["setuptools>=64.0"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-silvimetric = "silvimetric.cli.cli:cli"
-
+'stacem_create' = "usgs_stac.create:create_cmd"
+'stacem_finalize' = "usgs_stac.finalize:finalize_cmd"
 
 [tool.pytest.ini_options]
 testpaths = [ "tests" ]

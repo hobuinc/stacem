@@ -54,17 +54,6 @@ class MetaCatalog:
         """
         p = os.path.join(self.dst, "catalog.json")
 
-        ## Find the collections available in this dst directory
-        _, dirs, _ = next(os.walk(self.dst))
-        for d in dirs:
-            newp = os.path.join(self.dst, d)
-            _, _, files = next(os.walk(newp))
-            if 'collection.json' in files:
-                col_href = urljoin(self.href,
-                        os.path.join(d, 'collection.json'))
-                link = pystac.Link(rel='child', target=col_href,
-                        media_type='application/json', title=d)
-                self.catalog.add_link(link)
 
 
         self.catalog.save_object(True, p)

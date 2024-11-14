@@ -12,6 +12,11 @@ from urllib.request import urlopen
 from html.parser import HTMLParser
 from requests.adapters import HTTPAdapter, Retry
 
+DEFAULT_WESM_URL = 'https://apps.nationalmap.gov/lidar-explorer/lidar_ndx.json'
+DEFAULT_S3_BUCKET = 'usgs-lidar-public'
+DEFAULT_S3_PATH = 'wesm_stac'
+DEFAULT_LOCAL_DST = './wesm_stac'
+
 logger = logging.getLogger('wesm_stac')
 ch = logging.StreamHandler(stream=sys.stdout)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

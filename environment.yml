@@ -11,3 +11,6 @@ dependencies:
   - pyproj
   - pystac
   - boto3
+  - pip:
+    - requests
+    - pystac[validation]

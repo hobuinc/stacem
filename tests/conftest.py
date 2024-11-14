@@ -73,6 +73,45 @@ def meta_json():
     }
 
 @pytest.fixture
+def bad_meta():
+   return {
+        "FESMProjectID": "ARRA_GA_OKEFENOKEE_2010",
+        "Entwined": "False",
+        "EntwinePath": "",
+        "LAZinCloud": "True",
+        "FolderName": "legacy/ARRA_GA_OKEFENOKEE_2010",
+        "workunit": "ARRA_GA_OKEFENOKEE_2010",
+        "workunit_id": -1101,
+        "project": "ARRA_GA_OKEFENOKEE_2010_Legacy_Data",
+        "project_id": -11010,
+        "collect_start": "2010/03/12",
+        "collect_end": "2010/04/11",
+        "ql": "Other",
+        "spec": "Other",
+        "p_method": "linear-mode lidar",
+        "dem_gsd_meters": 3.0,
+        "horiz_crs": "3747",
+        "vert_crs": "5703",
+        "geoid": "Unknown",
+        "lpc_pub_date": "2012/06/28",
+        "lpc_update": None,
+        "lpc_category": "Does not meet",
+        "lpc_reason": "LPC predates v.1.0 or draft LBS",
+        "sourcedem_pub_date": None,
+        "sourcedem_update": None,
+        "sourcedem_category": "Does not meet",
+        "sourcedem_reason": "LPC does not meet",
+        "onemeter_category": "Does not meet",
+        "onemeter_reason": "LPC does not meet",
+        "seamless_category": "Does not meet",
+        "seamless_reason": "LPC does not meet",
+        "lpc_link": "https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/LPC/Projects/legacy/ARRA_GA_OKEFENOKEE_2010",
+        "sourcedem_link": None,
+        "metadata_link": "http://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Elevation/metadata/legacy/ARRA-GA_OKEFENOKEE_2010",
+        "bbox": "-82.7073, 30.3445, -81.8841, 31.4777"
+    }
+
+@pytest.fixture
 def item_json():
     # intentionally missing keys so we can demonstrate updating the json in tests
     return {

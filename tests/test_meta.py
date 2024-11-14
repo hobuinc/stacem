@@ -2,7 +2,6 @@ import os
 from typing import Any
 from pathlib import Path
 
-from dask import compute
 from pystac import Catalog, Item
 from usgs_stac.catalog import MetaCatalog
 from usgs_stac.collection import MetaCollection
@@ -38,6 +37,33 @@ def test_item(meta_json: dict[str, Any], s3_url: str, dst_dir: Path, item_json):
 
     meta_item = mi.from_metadata()
     assert meta_item.validate()
+
+def test_error(bad_meta, s3_url, dst_dir):
+    m = MetaCollection(bad_meta, s3_url, str(dst_dir))
+    assert m.collection.validate()
+
+    pc_path = "https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/LPC/Projects/legacy/ARRA_GA_OKEFENOKEE_2010/LAZ/USGS_LPC_ARRA_GA_OKEFENOKEE_2010_000036.laz"
+    meta_path = "https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/LPC/Projects/legacy/ARRA_GA_OKEFENOKEE_2010/metadata/USGS_LPC_ARRA_GA_OKEFENOKEE_2010_000036.xml"
+
+    mi = MetaItem(pc_path, meta_path, dst_dir, s3_url, m.meta)
+    mi.process()
+
+    assert mi.item.validate()
+    assert 'errors' in mi.item.properties
+
+def test_none_item(bad_meta, s3_url, dst_dir):
+    m = MetaCollection(bad_meta, s3_url, str(dst_dir))
+    assert m.collection.validate()
+
+    pc_path = "https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/LPC/Projects/WI_AshlandIronFlorence_2019_D19/WI_Iron_5_2019/LAZ/USGS_LPC_WI_AshlandIronFlorence_2019_D19_08000210.laz"
+    meta_path = "https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/LPC/Projects/WI_AshlandIronFlorence_2019_D19/WI_Iron_5_2019/metadata/USGS_LPC_WI_AshlandIronFlorence_2019_D19_08000210.xml"
+
+    mi = MetaItem(pc_path, meta_path, dst_dir, s3_url, m.meta)
+    mi.process()
+
+    assert mi.item is not None
+    assert mi.item.validate()
+    assert 'errors' in mi.item.properties
 
 def test_redo(meta_json: dict[str, Any], s3_url: str, dst_dir: Path):
     m = MetaCollection(meta_json, s3_url, str(dst_dir))
